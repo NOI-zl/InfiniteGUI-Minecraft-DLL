@@ -69,6 +69,26 @@ jobs:
       - name: 配置 MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: 安装第三方依赖 (GLEW / nlohmann-json / stb)
+        shell: pwsh
+        run: |
+          # 本工程依赖 GLEW / nlohmann-json / stb，README 说明需用户自行引入；
+          # 这里用 runner 自带的 vcpkg 装好并放进工程目录，保证干净检出也能编过。
+          $vcpkg = $env:VCPKG_INSTALLATION_ROOT
+          if (-not $vcpkg) { throw '找不到 VCPKG_INSTALLATION_ROOT' }
+          & "$vcpkg\vcpkg.exe" install glew:x64-windows nlohmann-json:x64-windows stb:x64-windows --clean-after-build
+          if ($LASTEXITCODE -ne 0) { throw "vcpkg install 失败 (exit $LASTEXITCODE)" }
+
+          $inc = "$vcpkg\installed\x64-windows\include"
+          $lib = "$vcpkg\installed\x64-windows\lib"
+          New-Item -ItemType Directory -Force InfiniteGUI-DLL\gl, InfiniteGUI-DLL\nlohmann | Out-Null
+          Copy-Item "$inc\GL\*"        InfiniteGUI-DLL\gl\     -Recurse -Force
+          Copy-Item "$inc\nlohmann\*"  InfiniteGUI-DLL\nlohmann\ -Recurse -Force
+          Copy-Item "$inc\stb_image.h" InfiniteGUI-DLL\        -Force
+          Copy-Item "$lib\glew32.lib"  InfiniteGUI-DLL\gl\     -Force
+          Copy-Item "$lib\glew32.dll"  InfiniteGUI-DLL\gl\     -Force -ErrorAction SilentlyContinue
+          Write-Host '依赖已就位: InfiniteGUI-DLL/gl, InfiniteGUI-DLL/nlohmann, InfiniteGUI-DLL/stb_image.h'
+
       - name: 编译 ${{ env.CONFIG }}|${{ env.PLATFORM }}
         run: msbuild InfiniteGUI-DLL.sln /m /p:Configuration=${{ env.CONFIG }} /p:Platform=${{ env.PLATFORM }}
 

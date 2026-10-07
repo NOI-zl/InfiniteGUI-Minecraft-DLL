@@ -26,6 +26,11 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup>
+    <!-- ?????(GLEW/nlohmann/stb)????????????? -->
+    <IncludePath>$(ProjectDir);$(ProjectDir)gl;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)gl;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -308,6 +313,7 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="detours\detours.lib" />
+    <Library Include="gl\glew32.lib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />

@@ -236,6 +236,7 @@
     <ClInclude Include="SoundModule.h" />
     <ClInclude Include="Sprint.h" />
     <ClInclude Include="AcClicker.h" />
+    <ClInclude Include="AcInputLink.h" />
     <ClInclude Include="InputSim.h" />
     <ClInclude Include="SneakTower.h" />
     <ClInclude Include="Telly.h" />

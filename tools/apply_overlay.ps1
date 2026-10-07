@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # apply_overlay.ps1 —— 把 AC / 搭路(Telly) / 蹲起塔 三个模块 + 输入注入层
 #                       叠加到上游 InfiniteGUI-Minecraft-DLL 仓库上
 #
@@ -177,7 +177,7 @@ $xmlNl = if ($xml.Contains("`r`n")) { "`r`n" } else { "`n" }
 $xmlChanged = $false
 
 $compileAdd = @('AcClicker.cpp', 'InputSim.cpp', 'SneakTower.cpp', 'Telly.cpp')
-$includeAdd = @('AcClicker.h', 'InputSim.h', 'SneakTower.h', 'Telly.h')
+$includeAdd = @('AcClicker.h', 'AcInputLink.h', 'InputSim.h', 'SneakTower.h', 'Telly.h')
 
 if ($xml -notmatch 'AcClicker\.cpp')
 {

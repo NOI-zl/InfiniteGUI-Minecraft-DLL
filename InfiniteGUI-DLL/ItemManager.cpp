@@ -26,6 +26,12 @@
 #include <chrono>
 
 #include "AutoText.h"
+
+// === overlay: AC / Telly / SneakTower ===
+#include "InputSim.h"
+#include "AcClicker.h"
+#include "Telly.h"
+#include "SneakTower.h"
 #include "MusicInfoItem.h"
 
 // ------------------------------------------------
@@ -57,6 +63,11 @@ void ItemManager::Init()
     AddItem(&MusicInfoItem::Instance());
 
     AddItem(&NotificationItem::Instance());
+
+    // === overlay: AC / Telly / SneakTower ===
+    AddItem(&AcClicker::Instance());
+    AddItem(&Telly::Instance());
+    AddItem(&SneakTower::Instance());
 
     AddItem(&GlobalWindowStyle::Instance());
     AddItem(&GameStateDetector::Instance());

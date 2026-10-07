@@ -235,6 +235,10 @@
     <ClInclude Include="LeftPanel.h" />
     <ClInclude Include="SoundModule.h" />
     <ClInclude Include="Sprint.h" />
+    <ClInclude Include="AcClicker.h" />
+    <ClInclude Include="InputSim.h" />
+    <ClInclude Include="SneakTower.h" />
+    <ClInclude Include="Telly.h" />
     <ClInclude Include="StringConverter.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="TextItem.h" />
@@ -290,6 +294,10 @@
     <ClCompile Include="NotificationItem.cpp" />
     <ClCompile Include="opengl_hook.cpp" />
     <ClCompile Include="Sprint.cpp" />
+    <ClCompile Include="AcClicker.cpp" />
+    <ClCompile Include="InputSim.cpp" />
+    <ClCompile Include="SneakTower.cpp" />
+    <ClCompile Include="Telly.cpp" />
     <ClCompile Include="StringConverter.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="TextItem.cpp" />

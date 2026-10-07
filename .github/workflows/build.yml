@@ -1,0 +1,139 @@
+name: build
+
+# =============================================================================
+# 整合进 InfiniteGUI-Minecraft-DLL 仓库后的编译流程：
+#   1) dll      —— 直接编译本仓库的 InfiniteGUI-DLL.sln（Release|x64）
+#                  里面已经整合了 AC / 搭路(Telly) / 蹲起塔 三个模块
+#   2) injector —— 编译外置隐藏/绕过/注入器 ACTGInjector.exe（独立运行的程序）
+#   3) package  —— 把 DLL + 注入器 + 说明打成一个包
+#
+# 触发：任何分支的 push / PR / 手动 workflow_dispatch
+# =============================================================================
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CONFIG: Release
+  PLATFORM: x64
+
+jobs:
+  # ---------------------------------------------------------------- DLL
+  dll:
+    name: DLL (AC + 搭路 + 蹲起塔)
+    runs-on: windows-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 校验三个模块是否已整合到位
+        shell: pwsh
+        run: |
+          $mods = @(
+            'InfiniteGUI-DLL\AcInputLink.h',
+            'InfiniteGUI-DLL\InputSim.h',
+            'InfiniteGUI-DLL\InputSim.cpp',
+            'InfiniteGUI-DLL\AcClicker.h',
+            'InfiniteGUI-DLL\AcClicker.cpp',
+            'InfiniteGUI-DLL\Telly.h',
+            'InfiniteGUI-DLL\Telly.cpp',
+            'InfiniteGUI-DLL\SneakTower.h',
+            'InfiniteGUI-DLL\SneakTower.cpp'
+          )
+          foreach ($f in $mods) {
+            if (-not (Test-Path $f)) { throw "缺文件: $f" }
+          }
+
+          $im = Get-Content InfiniteGUI-DLL\ItemManager.cpp -Raw
+          foreach ($k in @('AcClicker::Instance', 'Telly::Instance', 'SneakTower::Instance')) {
+            if ($im -notmatch [regex]::Escape($k)) { throw "ItemManager.cpp 没有注册 $k" }
+          }
+
+          $pj = Get-Content InfiniteGUI-DLL\InfiniteGUI-DLL.vcxproj -Raw
+          foreach ($k in @('AcClicker.cpp','Telly.cpp','SneakTower.cpp','InputSim.cpp','AcInputLink.h')) {
+            if ($pj -notmatch [regex]::Escape($k)) { throw "vcxproj 里没有 $k" }
+          }
+
+          # 新模块必须带 UTF-8 BOM，否则 MSVC 按系统代码页解读 u8"中文"，界面会乱码
+          foreach ($f in @('AcClicker.cpp','Telly.cpp','SneakTower.cpp','InputSim.cpp','AcInputLink.h')) {
+            $b = [System.IO.File]::ReadAllBytes("InfiniteGUI-DLL\$f")
+            if (-not ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF)) {
+              throw "$f 缺 UTF-8 BOM"
+            }
+          }
+          Write-Host '三个模块 + 注册 + 工程条目 + BOM 全部就位'
+
+      - name: 配置 MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: 编译 ${{ env.CONFIG }}|${{ env.PLATFORM }}
+        run: msbuild InfiniteGUI-DLL.sln /m /p:Configuration=${{ env.CONFIG }} /p:Platform=${{ env.PLATFORM }}
+
+      - name: 列出产物
+        shell: pwsh
+        run: Get-ChildItem -Recurse -Filter *.dll | Select-Object FullName, Length | Format-Table -AutoSize | Out-String -Width 200
+
+      - name: 上传 DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: InfiniteGUI-DLL-${{ env.PLATFORM }}-${{ env.CONFIG }}
+          path: |
+            **/*.dll
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------- 外置程序
+  injector:
+    name: 外置隐藏/绕过/注入器
+    runs-on: windows-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 配置 CMake
+        run: cmake -S ACTGInjector -B build-injector -A ${{ env.PLATFORM }} -DCMAKE_BUILD_TYPE=${{ env.CONFIG }}
+
+      - name: 编译
+        run: cmake --build build-injector --config ${{ env.CONFIG }}
+
+      - name: 上传注入器
+        uses: actions/upload-artifact@v4
+        with:
+          name: ACTGInjector-${{ env.PLATFORM }}
+          path: build-injector/out/ACTGInjector.exe
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------- 打包
+  package:
+    name: 打包（DLL + 外置程序）
+    runs-on: windows-latest
+    needs: [dll, injector]
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 下载两个产物
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: 组装发布包
+        shell: pwsh
+        run: |
+          $out = 'dist/InfiniteGUI-AC-Telly'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Get-ChildItem -Recurse dist -Filter *.dll      | ForEach-Object { Copy-Item $_.FullName $out -Force }
+          Get-ChildItem -Recurse dist -Filter ACTGInjector.exe | ForEach-Object { Copy-Item $_.FullName $out -Force }
+          Copy-Item README-ac-telly.md $out -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path "$out/docs" | Out-Null
+          Copy-Item docs\ac-telly-*.md "$out/docs" -Force -ErrorAction SilentlyContinue
+          Get-ChildItem $out -Recurse | Select-Object FullName, Length | Format-Table -AutoSize | Out-String -Width 160
+
+      - name: 上传发布包
+        uses: actions/upload-artifact@v4
+        with:
+          name: InfiniteGUI-AC-Telly-${{ env.PLATFORM }}
+          path: dist/InfiniteGUI-AC-Telly/**
+          if-no-files-found: error

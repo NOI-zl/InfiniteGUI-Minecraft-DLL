@@ -26,11 +26,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <PropertyGroup>
-    <!-- ?????(GLEW/nlohmann/stb)????????????? -->
-    <IncludePath>$(ProjectDir);$(ProjectDir)gl;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)gl;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -322,4 +317,10 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <!-- ?????(GLEW/nlohmann/stb)??????????????
+       ???? Microsoft.Cpp.props ??,???????? -->
+  <PropertyGroup>
+    <IncludePath>$(ProjectDir);$(ProjectDir)gl;$(ProjectDir)GL;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)gl;$(ProjectDir)GL;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
 </Project>

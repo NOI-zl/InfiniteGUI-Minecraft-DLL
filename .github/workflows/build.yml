@@ -81,12 +81,25 @@ jobs:
 
           $inc = "$vcpkg\installed\x64-windows\include"
           $lib = "$vcpkg\installed\x64-windows\lib"
-          New-Item -ItemType Directory -Force InfiniteGUI-DLL\gl, InfiniteGUI-DLL\nlohmann | Out-Null
-          Copy-Item "$inc\GL\*"        InfiniteGUI-DLL\gl\     -Recurse -Force
-          Copy-Item "$inc\nlohmann\*"  InfiniteGUI-DLL\nlohmann\ -Recurse -Force
-          Copy-Item "$inc\stb_image.h" InfiniteGUI-DLL\        -Force
-          Copy-Item "$lib\glew32.lib"  InfiniteGUI-DLL\gl\     -Force
-          Copy-Item "$lib\glew32.dll"  InfiniteGUI-DLL\gl\     -Force -ErrorAction SilentlyContinue
+          # 整目录拷贝（含 nlohmann/detail 等子目录），并对 vcpkg 的目录布局做搜索兜底
+          Copy-Item "$inc\nlohmann" InfiniteGUI-DLL\   -Recurse -Force
+          $glSrc = if (Test-Path "$inc\GL") { "$inc\GL" } else { (Get-ChildItem $inc -Recurse -Directory -Filter 'GL' | Select-Object -First 1).FullName }
+          if (-not $glSrc) { throw 'vcpkg 里找不到 GL 目录' }
+          Copy-Item $glSrc InfiniteGUI-DLL\gl -Recurse -Force
+
+          $stb = Get-ChildItem $inc -Recurse -Filter 'stb_image.h' | Select-Object -First 1
+          if (-not $stb) { throw 'vcpkg 里找不到 stb_image.h' }
+          Copy-Item $stb.FullName InfiniteGUI-DLL\ -Force
+
+          $glib = Get-ChildItem $lib -Recurse -Filter 'glew32.lib' | Select-Object -First 1
+          if (-not $glib) { throw 'vcpkg 里找不到 glew32.lib' }
+          Copy-Item $glib.FullName InfiniteGUI-DLL\gl -Force
+          $gdll = Get-ChildItem $lib -Recurse -Filter 'glew32.dll' | Select-Object -First 1
+          if ($gdll) { Copy-Item $gdll.FullName InfiniteGUI-DLL\gl -Force }
+
+          Write-Host "  工程 gl 目录: $((Get-ChildItem InfiniteGUI-DLL\gl -Recurse -File).Count) 个文件"
+          Write-Host "  工程 nlohmann: $((Get-ChildItem InfiniteGUI-DLL\nlohmann -Recurse -File).Count) 个文件"
+          Write-Host "  stb_image.h  : $(Test-Path InfiniteGUI-DLL\stb_image.h)"
           Write-Host '依赖已就位: InfiniteGUI-DLL/gl, InfiniteGUI-DLL/nlohmann, InfiniteGUI-DLL/stb_image.h'
 
       - name: 编译 ${{ env.CONFIG }}|${{ env.PLATFORM }}

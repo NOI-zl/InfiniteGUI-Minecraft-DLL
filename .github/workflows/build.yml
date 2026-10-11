@@ -155,10 +155,10 @@ jobs:
       - name: 组装发布包
         shell: pwsh
         run: |
-          $out = 'dist/InfiniteGUI-AC-Telly'
+          $out = 'pkg/InfiniteGUI-AC-Telly'
           New-Item -ItemType Directory -Force -Path $out | Out-Null
-          Get-ChildItem -Recurse dist -Filter *.dll      | ForEach-Object { Copy-Item $_.FullName $out -Force }
-          Get-ChildItem -Recurse dist -Filter ACTGInjector.exe | ForEach-Object { Copy-Item $_.FullName $out -Force }
+          Get-ChildItem -Path dist -Recurse -File -Filter *.dll      | ForEach-Object { Copy-Item $_.FullName $out -Force }
+          Get-ChildItem -Path dist -Recurse -File -Filter ACTGInjector.exe | ForEach-Object { Copy-Item $_.FullName $out -Force }
           Copy-Item README-ac-telly.md $out -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path "$out/docs" | Out-Null
           Copy-Item docs\ac-telly-*.md "$out/docs" -Force -ErrorAction SilentlyContinue
@@ -168,5 +168,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: InfiniteGUI-AC-Telly-${{ env.PLATFORM }}
-          path: dist/InfiniteGUI-AC-Telly/**
+          path: pkg/InfiniteGUI-AC-Telly/**
           if-no-files-found: error

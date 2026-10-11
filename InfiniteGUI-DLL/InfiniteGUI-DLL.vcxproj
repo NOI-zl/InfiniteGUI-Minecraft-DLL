@@ -323,4 +323,10 @@
     <IncludePath>$(ProjectDir);$(ProjectDir)gl;$(ProjectDir)GL;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)gl;$(ProjectDir)GL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <!-- ??? UTF-8 ??(u8 ???);?? UTF-8 ??,?? C4566 ?? -->
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
 </Project>

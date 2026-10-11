@@ -74,7 +74,7 @@ int AcClicker::PeriodMs(const ButtonSched& b) const
 }
 
 // 按住时长必须夹在周期之内，否则"按住时间"会叠加到周期上，实际 CPS 达不到设定值
-int AcClicker::HoldFor(const ButtonSched& b, int period) const
+int AcClicker::HoldFor(const ButtonSched& b, int period)
 {
     int lo = holdMin < 1 ? 1 : holdMin;
     int hi = holdMax < lo ? lo : holdMax;

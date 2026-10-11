@@ -98,7 +98,7 @@ private:
 
     // 辅助
     int   PeriodMs(const ButtonSched& b) const;
-    int   HoldFor(const ButtonSched& b, int period) const;
+    int   HoldFor(const ButtonSched& b, int period);
     int   Jitter(int base, int percent, int minimum);
     void  EmitClick(int idx, unsigned long long now);
     void  ReleaseAll();
